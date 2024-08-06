@@ -1,0 +1,6 @@
+@ReservationProcessor.RejectionService_HostAddress = http://localhost:5258
+
+GET {{ReservationProcessor.RejectionService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

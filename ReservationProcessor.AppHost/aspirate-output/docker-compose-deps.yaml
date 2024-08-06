@@ -1,0 +1,87 @@
+services:
+  MessageBus:
+    container_name: "MessageBus"
+    image: "docker.io/library/rabbitmq:3.13-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "serviceUser"
+      RABBITMQ_DEFAULT_PASS: "securePassword123"
+    ports:
+    - target: 5672
+      published: 16081
+    - target: 15672
+      published: 15672
+    restart: unless-stopped
+  MSSQL:
+    container_name: "MSSQL"
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "securePassword123"
+    ports:
+    - target: 1433
+      published: 16082
+    restart: unless-stopped
+  # Postgres:
+  #   container_name: "Postgres"
+  #   image: "docker.io/library/postgres:16.2"
+  #   environment:
+  #     POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+  #     POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+  #     POSTGRES_USER: "postgres"
+  #     POSTGRES_PASSWORD: "VRnqqJB13spjRN2bzMsNIK"
+  #   ports:
+  #   - target: 5432
+  #     published: 5432
+  #   restart: unless-stopped
+  # ReservationService:
+  #   container_name: "ReservationService"
+  #   image: "reservationservice:latest"
+  #   environment:
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+  #     ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  #     HTTP_PORTS: "8080"
+  #     ConnectionStrings__MessageBus: "amqp://guest:BYnYoJ04l57bwbhn7YPTB5@MessageBus:5672"
+  #     ConnectionStrings__ReservationsDB: "Server=MSSQL,11470;User ID=sa;Password=secureDbPassword123;TrustServerCertificate=true;Database=ReservationsDB"
+  #     ConnectionStrings__master: "Server=MSSQL,11470;User ID=sa;Password=secureDbPassword123;TrustServerCertificate=true;Database=master"
+  #   ports:
+  #   - target: 8080
+  #     published: 10000
+  #   - target: 8443
+  #     published: 10001
+  #   restart: unless-stopped
+  # AcceptanceService:
+  #   container_name: "AcceptanceService"
+  #   image: "acceptanceservice:latest"
+  #   environment:
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+  #     ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  #     HTTP_PORTS: "8080"
+  #     ConnectionStrings__MessageBus: "amqp://guest:BYnYoJ04l57bwbhn7YPTB5@MessageBus:5672"
+  #     ConnectionStrings__ReservationsDB: "Server=MSSQL,11470;User ID=sa;Password=secureDbPassword123;TrustServerCertificate=true;Database=ReservationsDB"
+  #   ports:
+  #   - target: 8080
+  #     published: 10002
+  #   - target: 8443
+  #     published: 10003
+  #   restart: unless-stopped
+  # RejectionService:
+  #   container_name: "RejectionService"
+  #   image: "rejectionservice:latest"
+  #   environment:
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
+  #     OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+  #     ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  #     HTTP_PORTS: "8080"
+  #     ConnectionStrings__MessageBus: "amqp://guest:BYnYoJ04l57bwbhn7YPTB5@MessageBus:5672"
+  #     ConnectionStrings__RejectionsDatabase: "Host=Postgres;Port=5432;Username=postgres;Password=VRnqqJB13spjRN2bzMsNIK;Database=RejectionsDatabase"
+  #   ports:
+  #   - target: 8080
+  #     published: 10004
+  #   - target: 8443
+  #     published: 10005
+  #   restart: unless-stopped

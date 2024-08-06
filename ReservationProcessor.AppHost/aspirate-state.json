@@ -1,0 +1,50 @@
+{
+  "projectPath": ".",
+  "outputPath": "aspirate-output",
+  "containerImageTags": [
+    "latest"
+  ],
+  "containerBuilder": "docker",
+  "outputFormat": "compose",
+  "privateRegistryEmail": "aspir8@aka.ms",
+  "includeDashboard": false,
+  "secrets": {
+    "salt": "fkkxY6TXgBGcUyXF",
+    "hash": "77tQ9w0Dg5eNnI69\u002BNT4dup1QM8V0S9NKbtCxFQK7qQ=",
+    "secrets": {
+      "MessageBus-password": {
+        "value": "fkkxY6TXgBGcUyXFPpp2JIctMouzR3xQUAD7BUSk7ZRM5iEfW9UxcYED1gjIYjgQ8H8="
+      },
+      "Postgres-password": {
+        "value": "fkkxY6TXgBGcUyXFOfvL8RqCF59UBl\u002Bt5hl\u002BH1Cv7bxS5lMaBJN2eaQvjASFdhsK\u002BwE="
+      },
+      "dbPassword": {
+        "value": "fkkxY6TXgBGcUyXFef4w7SLmDGp9QOPHMwTMInWY4LhRyVVJZ4F1YIEOzALOCVs="
+      },
+      "MessageBus": {},
+      "MSSQL": {
+        "MSSQL_SA_PASSWORD": "fkkxY6TXgBGcUyXFef4w7SLmDGp9QOPHMwTMInWY4LhRyVVJZ4F1YIEOzALOCVs="
+      },
+      "ReservationsDB": {},
+      "master": {},
+      "Postgres": {
+        "POSTGRES_PASSWORD": "fkkxY6TXgBGcUyXFOfvL8RqCF59UBl\u002Bt5hl\u002BH1Cv7bxS5lMaBJN2eaQvjASFdhsK\u002BwE="
+      },
+      "RejectionsDatabase": {},
+      "ReservationService": {
+        "ConnectionStrings__MessageBus": "fkkxY6TXgBGcUyXFHjGMLEdJzzTLW48hwKi4J2eQ8r0Zgz5MQoV1Z8wj5wimVCJ0hia9saPTD7kB2ZRqeD0mukCrkPSV9/IVoOTGMIn2cg==",
+        "ConnectionStrings__ReservationsDB": "fkkxY6TXgBGcUyXFL1RXOJZ5u6OKY4n2X3TWj1WY8btG3ixmZLNXX9pQj1LIC1MRwS/6pojgUKIO1Z1bXwxklX\u002Bq3vSR8\u002BIlsNOeVd6yM/Tt7\u002BcSEyORJv1KUvOlY65rjDwM3cOseBSPGVZJTTqZ2ohms2PVU\u002BmiEkz9BCUdXXFXWwK079oyJD7S",
+        "ConnectionStrings__master": "fkkxY6TXgBGcUyXF1DKuu3WkB6q5G2QGok6cxVWY8btG3ixmZLNXX9pQj1LIC1MRwS/6pojgUKIO1Z1bXwxklX\u002Bq3vSR8\u002BIlsNOeVd6yM/Tt7\u002BcSEyORJv1KUvOlY65rjDwM3cOseBSPGVZJTTqZ2ohms2PVU\u002BmiEkz9BBoZXWBAXw=="
+      },
+      "AcceptanceService": {
+        "ConnectionStrings__MessageBus": "fkkxY6TXgBGcUyXFHjGMLEdJzzTLW48hwKi4J2eQ8r0Zgz5MQoV1Z8wj5wimVCJ0hia9saPTD7kB2ZRqeD0mukCrkPSV9/IVoOTGMIn2cg==",
+        "ConnectionStrings__ReservationsDB": "fkkxY6TXgBGcUyXFL1RXOJZ5u6OKY4n2X3TWj1WY8btG3ixmZLNXX9pQj1LIC1MRwS/6pojgUKIO1Z1bXwxklX\u002Bq3vSR8\u002BIlsNOeVd6yM/Tt7\u002BcSEyORJv1KUvOlY65rjDwM3cOseBSPGVZJTTqZ2ohms2PVU\u002BmiEkz9BCUdXXFXWwK079oyJD7S"
+      },
+      "RejectionService": {
+        "ConnectionStrings__MessageBus": "fkkxY6TXgBGcUyXFHjGMLEdJzzTLW48hwKi4J2eQ8r0Zgz5MQoV1Z8wj5wimVCJ0hia9saPTD7kB2ZRqeD0mukCrkPSV9/IVoOTGMIn2cg==",
+        "ConnectionStrings__RejectionsDatabase": "fkkxY6TXgBGcUyXFhUM8R8hx0pxeB\u002B1LGJFHnU6S8Lke/H5YQ4d0doVa7gmNT1Vxhnm6vZTXCKMBj6BfEQ98iXmpkeKHq8c2puSLas2lfdXQ8/JSa1KbQfxPS9W4NL5npD0B8frjVROSG1VcW2LQ\u002Bphp7UTATueuAHv5TRYaT2dA"
+      }
+    }
+  },
+  "processAllComponents": true
+}
