@@ -64,7 +64,7 @@ public class MessageConsumer<T> : BackgroundService, IMessageConsumer<T>
             tasks = handlers.Select(x => Task.Run((Func<Task?>)(() => x.Handle(message))));
             _channel.BasicAck(@event.DeliveryTag, false);
             _logger.LogInformation(
-                $"Successfully delivered and started processing message {typeof(T)} deliveryTag: {@event.DeliveryTag}");
+                $"Successfully received and started processing message {typeof(T)} deliveryTag: {@event.DeliveryTag}");
         }
         catch (Exception ex)
         {
@@ -76,6 +76,8 @@ public class MessageConsumer<T> : BackgroundService, IMessageConsumer<T>
             await Task.WhenAll(tasks);
             if(scope!=null)
                 await (scope.Value.DisposeAsync());
+            _logger.LogInformation(
+                $"All tasks have finished for message {typeof(T)} deliveryTag: {@event.DeliveryTag}");
         }
     }
 }

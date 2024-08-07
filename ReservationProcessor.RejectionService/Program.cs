@@ -1,4 +1,7 @@
 
+using ReservationProcessor.ServiceDefaults.Messaging.Data;
+using ReservationProcessor.ServiceDefaults.Messaging;
+
 namespace ReservationProcessor.RejectionService;
 
 public class Program
@@ -9,6 +12,10 @@ public class Program
         builder.AddServiceDefaults();
 
         // Add services to the container.
+
+        builder.AddRabbitMQ("MessageBus")
+            .AddMessageConsumer<ValidationSuccessMessage>("Fail_RabbitMQ")
+            .AddMessageHandler<ValidationFailureMessage, FailureStorageService>();
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

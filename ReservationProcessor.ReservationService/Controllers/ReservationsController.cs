@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using ReservationProcessor.ServiceDefaults.Messaging.Data;
 
 namespace ReservationProcessor.ReservationService.Controllers;
 

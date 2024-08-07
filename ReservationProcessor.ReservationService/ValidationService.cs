@@ -2,9 +2,11 @@
 using ReservationProcessor.ReservationService.Controllers;
 using System.Data;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Text.Json;
 using Dapper;
 using ReservationProcessor.ServiceDefaults.Messaging;
+using ReservationProcessor.ServiceDefaults.Messaging.Data;
 
 namespace ReservationProcessor.ReservationService;
 
@@ -36,11 +38,18 @@ public class DelayService : IMessageHandler<ReservationRequestMessage>
 public class ValidationService : IMessageHandler<ReservationRequestMessage>
 {
     private readonly SqlConnection _sqlConnection;
+    private readonly IMessagePublisher<ValidationSuccessMessage> _successPublisher;
+    private readonly IMessagePublisher<ValidationFailureMessage> _failPublisher;
     private readonly ILogger<ValidationService> _logger;
 
-    public ValidationService(SqlConnection sqlConnection, ILogger<ValidationService> logger)
+    public ValidationService(SqlConnection sqlConnection,
+        IMessagePublisher<ValidationSuccessMessage> successPublisher,
+        IMessagePublisher<ValidationFailureMessage> failPublisher,
+        ILogger<ValidationService> logger)
     {
         _sqlConnection = sqlConnection;
+        _successPublisher = successPublisher;
+        _failPublisher = failPublisher;
         _logger = logger;
     }
 
@@ -50,18 +59,67 @@ public class ValidationService : IMessageHandler<ReservationRequestMessage>
         {
             RawRequest = JsonSerializer.Serialize(message),
             DateCreated = DateTime.Now,
-            ValidationResult = Validate(message)
+            ValidationResult = Validate(message, out var errors)
         };
-        await _sqlConnection.ExecuteAsync("StoreReservationRequest", request, commandType: CommandType.StoredProcedure);
+
+        var reservationId = await SaveReservationRequest(request); //Task 1
+
+        if (request.ValidationResult == ValidationResult.Ok) //Task 2
+        {
+            await PublishSuccess(reservationId);
+        }
+        else
+        {
+            await PublishFail(reservationId, errors);
+        }
     }
 
-    private ValidationResult Validate(ReservationRequestMessage message)
+    private async Task PublishFail(Guid reservationId, IReadOnlyCollection<string> errors)
     {
-        bool valid = true;
-        valid &= !string.IsNullOrWhiteSpace(message.ClientName);
-        valid &= message.ClientTelephone.All(char.IsDigit) && message.ClientTelephone.Length == 10;
-        valid &= message.NumberOfReservedTable >= 0;
-        valid &= DateTime.TryParseExact(message.DateOfReservation, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+        var failMessage = new ValidationFailureMessage()
+        {
+            ReservationId = reservationId,
+            ValidationDate = DateTime.Now,
+            Errors = errors
+        };
+        await _failPublisher.Publish(failMessage);
+    }
+
+    private async Task PublishSuccess(Guid reservationId)
+    {
+        var successMessage = new ValidationSuccessMessage()
+        {
+            ReservationId = reservationId,
+            ValidationDate = DateTime.Now
+        };
+        await _successPublisher.Publish(successMessage);
+    }
+
+    private async Task<Guid> SaveReservationRequest(ReservationRequest request)
+    {
+        var parameters = new DynamicParameters(request);
+        parameters.Add("@ReservationId", dbType: DbType.Guid, direction: ParameterDirection.Output);
+        await _sqlConnection.ExecuteAsync("StoreReservationRequest", parameters, commandType: CommandType.StoredProcedure);
+        var reservationId = parameters.Get<Guid>("@ReservationId");
+        return reservationId;
+    }
+
+    private ValidationResult Validate(ReservationRequestMessage message, out IReadOnlyCollection<string> errors)
+    {
+        DateTime dateResult;
+        var rules = new List<Expression<Func<ReservationRequestMessage, bool>>>
+        {
+            m => !string.IsNullOrWhiteSpace(m.ClientName),
+            m => m.ClientTelephone.All(char.IsDigit) && m.ClientTelephone.Length == 10,
+            m => m.NumberOfReservedTable >= 0,
+            m => DateTime.TryParseExact(m.DateOfReservation, "yyyy-MM-dd HH:mm:ss",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out dateResult)
+        };
+        var ruleResults = rules.Select(rule => (Rule: rule, Result: rule.Compile()(message)));
+        var failedRules = ruleResults.Where(x => x.Result == false).ToArray();
+        bool valid = !failedRules.Any();
+        errors = failedRules.Select(x => x.Rule.ToString() ?? string.Empty).ToList().AsReadOnly();
+
         return valid ? ValidationResult.Ok : ValidationResult.Fail;
     }
 }

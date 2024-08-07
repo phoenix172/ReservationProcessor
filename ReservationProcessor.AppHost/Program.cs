@@ -6,7 +6,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var username = builder.AddParameter("username", false);
 var password = builder.AddParameter("password", true);
 
-var messaging = builder.AddRabbitMQ("MessageBus", username, password, 16081);
+var messaging = builder.AddRabbitMQ("MessageBus", username, password, 16081).WithManagementPlugin(15672);
 var mssql = builder.AddSqlServer("MSSQL", password, 16082).WithHealthCheck();
 var postgres = builder.AddPostgres("Postgres",username, password, 16083).WithHealthCheck();
 
@@ -31,6 +31,8 @@ builder
 
 builder.AddProject<ReservationProcessor_RejectionService>("RejectionService")
     .WithReference(messaging)
-    .WithReference(rejectionsDatabase);
+    .WithReference(rejectionsDatabase)
+    .WaitFor(rejectionsDatabase)
+    .WaitFor(messaging);
 
 builder.Build().Run();

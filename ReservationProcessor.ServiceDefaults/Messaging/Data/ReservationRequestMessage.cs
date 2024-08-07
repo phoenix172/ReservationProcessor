@@ -1,4 +1,4 @@
-namespace ReservationProcessor.ReservationService;
+namespace ReservationProcessor.ServiceDefaults.Messaging.Data;
 
 public class ReservationRequestMessage
 {

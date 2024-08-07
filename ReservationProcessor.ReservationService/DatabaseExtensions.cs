@@ -19,7 +19,7 @@ public static class DatabaseExtensions
             END
             """);
 
-        await using var reservationsConnection = scope.ServiceProvider.GetService<SqlConnection>();
+        await using var reservationsConnection = scope.ServiceProvider.GetRequiredService<SqlConnection>();
 
         await reservationsConnection.ExecuteAsync(
             """
@@ -49,10 +49,16 @@ public static class DatabaseExtensions
             CREATE PROCEDURE StoreReservationRequest
                 (@RawRequest varchar(max),
                 @DateCreated datetime2,
-                @ValidationResult int)
+                @ValidationResult int,
+                @ReservationId uniqueIdentifier OUT)
             AS
             BEGIN
-                INSERT INTO ReservationRequests VALUES (NEWID(), @RawRequest, @DateCreated, @ValidationResult)
+                DECLARE @InsertResult table (Id uniqueidentifier)
+                INSERT INTO ReservationRequests 
+                OUTPUT INSERTED.Id into @InsertResult
+                VALUES (NEWID(), @RawRequest, @DateCreated, @ValidationResult)
+                SET @ReservationId = (select Id from @InsertResult)
+                RETURN 0
             END
             """);
 

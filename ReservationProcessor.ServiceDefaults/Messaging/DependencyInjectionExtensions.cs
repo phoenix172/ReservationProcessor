@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using ReservationProcessor.ServiceDefaults.Messaging.Data;
 
 namespace ReservationProcessor.ServiceDefaults.Messaging;
 
@@ -38,5 +39,10 @@ public static class DependencyInjectionExtensions
             new MessagePublisher<T>(
             queueName,
             svc.GetRequiredService<IConnection>()));
+    }
+
+    public static IServiceCollection AddMessageHandler<T, THandler>(this IServiceCollection services) where THandler : class, IMessageHandler<T>
+    {
+        return services.AddScoped<IMessageHandler<T>, THandler>();
     }
 }
