@@ -11,6 +11,7 @@ var mssql = builder.AddSqlServer("MSSQL", password, 16082).WithHealthCheck();
 var postgres = builder.AddPostgres("Postgres",username, password, 16083).WithPgAdmin().WithHealthCheck();
 
 var reservationsDatabase = mssql.AddDatabase("ReservationsDB");
+var acceptanceDatabase = mssql.AddDatabase("AcceptanceDB");
 var masterDatabase = mssql.AddDatabase("MasterDB", "master");
 var postgresDefaultDatabase = postgres.AddDatabase("PostgresDefaultDB","postgres");
 var rejectionsDatabase = postgres.AddDatabase("RejectionsDB".ToLowerInvariant());
@@ -26,8 +27,10 @@ builder
 builder
     .AddProject<ReservationProcessor_AcceptanceService>("AcceptanceService")
     .WithReference(messaging)
-    .WithReference(reservationsDatabase)
-    .WaitFor(reservationsDatabase)
+    .WithReference(acceptanceDatabase)
+    .WithReference(masterDatabase)
+    .WaitFor(masterDatabase)
+    .WaitFor(acceptanceDatabase)
     .WaitFor(messaging);
 
 builder.AddProject<ReservationProcessor_RejectionService>("RejectionService")

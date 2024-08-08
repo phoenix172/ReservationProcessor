@@ -26,7 +26,9 @@ public class Program
             .AddMessageConsumer<ReservationRequestMessage>("Reservations_RabbitMQ")
             .AddMessagePublisher<ValidationSuccessMessage>("Success_RabbitMQ")
             .AddMessagePublisher<ValidationFailureMessage>("Fail_RabbitMQ")
-            .AddMessageHandler<ReservationRequestMessage, ValidationService>();
+            .AddMessageHandler<ReservationRequestMessage, ValidationService>()
+            .AddMessageConsumer<ValidationSuccessSavedMessage>("Response_RabbitMQ")
+            .AddMessageHandler<ValidationSuccessSavedMessage, ResponseStorageService>();
 
         builder.AddKeyedSqlServerClient("MasterDB");
         builder.AddSqlServerClient("ReservationsDB");
@@ -51,6 +53,6 @@ public class Program
 
         await app.InitializeDatabase();
 
-        app.Run();
+        await app.RunAsync();
     }
 }

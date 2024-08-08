@@ -16,9 +16,9 @@ public static class DatabaseExtensions
         if(!exists)
             await masterConnection.ExecuteAsync("CREATE DATABASE RejectionsDB");
 
-        await using var reservationsConnection = scope.ServiceProvider.GetRequiredService<NpgsqlConnection>();
+        await using var rejectionsConnection = scope.ServiceProvider.GetRequiredService<NpgsqlConnection>();
 
-        await reservationsConnection.ExecuteAsync(
+        await rejectionsConnection.ExecuteAsync(
             """
               CREATE TABLE IF NOT EXISTS RejectedReservations(
                   Id uuid NOT NULL PRIMARY KEY,
@@ -28,7 +28,7 @@ public static class DatabaseExtensions
               )
             """);
 
-        await reservationsConnection.ExecuteAsync(
+        await rejectionsConnection.ExecuteAsync(
             """
             CREATE OR REPLACE PROCEDURE public."StoreReservationRejection"(
             	IN reservationid uuid,
