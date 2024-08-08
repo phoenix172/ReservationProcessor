@@ -5,7 +5,7 @@ namespace ReservationProcessor.AcceptanceService;
 
 public static class DatabaseExtensions
 {
-    public static async Task InitializeDatabase(this WebApplication app)
+    public static async Task InitializeDatabase(this IHost app)
     {
         await using var scope = app.Services.CreateAsyncScope();
         await using var masterConnection = scope.ServiceProvider.GetRequiredKeyedService<SqlConnection>("MasterDB");

@@ -1,26 +1,18 @@
 {
   "$schema": "https://json.schemastore.org/aspire-8.0.json",
   "resources": {
-    "MessageBus": {
-      "type": "container.v0",
-      "connectionString": "amqp://guest:{MessageBus-password.value}@{MessageBus.bindings.tcp.host}:{MessageBus.bindings.tcp.port}",
-      "image": "docker.io/library/rabbitmq:3.13",
-      "env": {
-        "RABBITMQ_DEFAULT_USER": "guest",
-        "RABBITMQ_DEFAULT_PASS": "{MessageBus-password.value}"
-      },
-      "bindings": {
-        "tcp": {
-          "scheme": "tcp",
-          "protocol": "tcp",
-          "transport": "tcp",
-          "targetPort": 5672
+    "username": {
+      "type": "parameter.v0",
+      "value": "{username.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string"
         }
       }
     },
-    "dbPassword": {
+    "password": {
       "type": "parameter.v0",
-      "value": "{dbPassword.inputs.value}",
+      "value": "{password.inputs.value}",
       "inputs": {
         "value": {
           "type": "string",
@@ -28,21 +20,65 @@
         }
       }
     },
-    "MSSQL": {
+    "MessageBus": {
       "type": "container.v0",
-      "connectionString": "Server={MSSQL.bindings.tcp.host},{MSSQL.bindings.tcp.port};User ID=sa;Password={dbPassword.value};TrustServerCertificate=true",
-      "image": "mcr.microsoft.com/mssql/server:2022-latest",
+      "connectionString": "amqp://{username.value}:{password.value}@{MessageBus.bindings.tcp.host}:{MessageBus.bindings.tcp.port}",
+      "image": "docker.io/library/rabbitmq:3.13-management",
       "env": {
-        "ACCEPT_EULA": "Y",
-        "MSSQL_SA_PASSWORD": "{dbPassword.value}"
+        "RABBITMQ_DEFAULT_USER": "{username.value}",
+        "RABBITMQ_DEFAULT_PASS": "{password.value}"
       },
       "bindings": {
         "tcp": {
           "scheme": "tcp",
           "protocol": "tcp",
           "transport": "tcp",
-          "port": 11470,
+          "port": 16081,
+          "targetPort": 5672
+        },
+        "management": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http",
+          "targetPort": 15672
+        }
+      }
+    },
+    "MSSQL": {
+      "type": "container.v0",
+      "connectionString": "Server={MSSQL.bindings.tcp.host},{MSSQL.bindings.tcp.port};User ID=sa;Password={password.value};TrustServerCertificate=true",
+      "image": "mcr.microsoft.com/mssql/server:2022-latest",
+      "env": {
+        "ACCEPT_EULA": "Y",
+        "MSSQL_SA_PASSWORD": "{password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "port": 16082,
           "targetPort": 1433
+        }
+      }
+    },
+    "Postgres": {
+      "type": "container.v0",
+      "connectionString": "Host={Postgres.bindings.tcp.host};Port={Postgres.bindings.tcp.port};Username={username.value};Password={password.value}",
+      "image": "docker.io/library/postgres:16.2",
+      "env": {
+        "POSTGRES_HOST_AUTH_METHOD": "scram-sha-256",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=scram-sha-256",
+        "POSTGRES_USER": "{username.value}",
+        "POSTGRES_PASSWORD": "{password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "port": 16083,
+          "targetPort": 5432
         }
       }
     },
@@ -50,32 +86,21 @@
       "type": "value.v0",
       "connectionString": "{MSSQL.connectionString};Database=ReservationsDB"
     },
-    "master": {
+    "AcceptanceDB": {
+      "type": "value.v0",
+      "connectionString": "{MSSQL.connectionString};Database=AcceptanceDB"
+    },
+    "MasterDB": {
       "type": "value.v0",
       "connectionString": "{MSSQL.connectionString};Database=master"
     },
-    "Postgres": {
-      "type": "container.v0",
-      "connectionString": "Host={Postgres.bindings.tcp.host};Port={Postgres.bindings.tcp.port};Username=postgres;Password={Postgres-password.value}",
-      "image": "docker.io/library/postgres:16.2",
-      "env": {
-        "POSTGRES_HOST_AUTH_METHOD": "scram-sha-256",
-        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=scram-sha-256",
-        "POSTGRES_USER": "postgres",
-        "POSTGRES_PASSWORD": "{Postgres-password.value}"
-      },
-      "bindings": {
-        "tcp": {
-          "scheme": "tcp",
-          "protocol": "tcp",
-          "transport": "tcp",
-          "targetPort": 5432
-        }
-      }
-    },
-    "RejectionsDatabase": {
+    "PostgresDefaultDB": {
       "type": "value.v0",
-      "connectionString": "{Postgres.connectionString};Database=RejectionsDatabase"
+      "connectionString": "{Postgres.connectionString};Database=postgres"
+    },
+    "rejectionsdb": {
+      "type": "value.v0",
+      "connectionString": "{Postgres.connectionString};Database=rejectionsdb"
     },
     "ReservationService": {
       "type": "project.v0",
@@ -84,23 +109,9 @@
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
-        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
-        "HTTP_PORTS": "{ReservationService.bindings.http.targetPort}",
         "ConnectionStrings__MessageBus": "{MessageBus.connectionString}",
         "ConnectionStrings__ReservationsDB": "{ReservationsDB.connectionString}",
-        "ConnectionStrings__master": "{master.connectionString}"
-      },
-      "bindings": {
-        "http": {
-          "scheme": "http",
-          "protocol": "tcp",
-          "transport": "http"
-        },
-        "https": {
-          "scheme": "https",
-          "protocol": "tcp",
-          "transport": "http"
-        }
+        "ConnectionStrings__MasterDB": "{MasterDB.connectionString}"
       }
     },
     "AcceptanceService": {
@@ -110,22 +121,9 @@
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
-        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
-        "HTTP_PORTS": "{AcceptanceService.bindings.http.targetPort}",
         "ConnectionStrings__MessageBus": "{MessageBus.connectionString}",
-        "ConnectionStrings__ReservationsDB": "{ReservationsDB.connectionString}"
-      },
-      "bindings": {
-        "http": {
-          "scheme": "http",
-          "protocol": "tcp",
-          "transport": "http"
-        },
-        "https": {
-          "scheme": "https",
-          "protocol": "tcp",
-          "transport": "http"
-        }
+        "ConnectionStrings__AcceptanceDB": "{AcceptanceDB.connectionString}",
+        "ConnectionStrings__MasterDB": "{MasterDB.connectionString}"
       }
     },
     "RejectionService": {
@@ -135,53 +133,9 @@
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES": "true",
         "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
-        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
-        "HTTP_PORTS": "{RejectionService.bindings.http.targetPort}",
         "ConnectionStrings__MessageBus": "{MessageBus.connectionString}",
-        "ConnectionStrings__RejectionsDatabase": "{RejectionsDatabase.connectionString}"
-      },
-      "bindings": {
-        "http": {
-          "scheme": "http",
-          "protocol": "tcp",
-          "transport": "http"
-        },
-        "https": {
-          "scheme": "https",
-          "protocol": "tcp",
-          "transport": "http"
-        }
-      }
-    },
-    "MessageBus-password": {
-      "type": "parameter.v0",
-      "value": "{MessageBus-password.inputs.value}",
-      "inputs": {
-        "value": {
-          "type": "string",
-          "secret": true,
-          "default": {
-            "generate": {
-              "minLength": 22,
-              "special": false
-            }
-          }
-        }
-      }
-    },
-    "Postgres-password": {
-      "type": "parameter.v0",
-      "value": "{Postgres-password.inputs.value}",
-      "inputs": {
-        "value": {
-          "type": "string",
-          "secret": true,
-          "default": {
-            "generate": {
-              "minLength": 22
-            }
-          }
-        }
+        "ConnectionStrings__rejectionsdb": "{rejectionsdb.connectionString}",
+        "ConnectionStrings__PostgresDefaultDB": "{PostgresDefaultDB.connectionString}"
       }
     }
   }

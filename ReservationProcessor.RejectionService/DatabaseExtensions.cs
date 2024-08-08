@@ -1,20 +1,20 @@
-using System.Data;
 using Dapper;
 using Npgsql;
 
-namespace ReservationProcessor.ReservationService;
+namespace ReservationProcessor.RejectionService;
 
 public static class DatabaseExtensions
 {
-    public static async Task InitializeDatabase(this WebApplication app)
+    public static async Task InitializeDatabase(this IHost app)
     {
         await using var scope = app.Services.CreateAsyncScope();
         await using var masterConnection = scope.ServiceProvider.GetRequiredKeyedService<NpgsqlConnection>("PostgresDefaultDB");
 
-        var exists = await masterConnection.QuerySingleAsync<int>("SELECT COUNT(*) FROM pg_database WHERE datname = 'RejectionsDB'") > 0;
+        await masterConnection.OpenAsync();
+        var exists = await masterConnection.QuerySingleAsync<int>("SELECT COUNT(*) FROM pg_database WHERE datname = 'rejectionsdb'") > 0;
 
         if(!exists)
-            await masterConnection.ExecuteAsync("CREATE DATABASE RejectionsDB");
+            await masterConnection.ExecuteAsync("CREATE DATABASE rejectionsdb");
 
         await using var rejectionsConnection = scope.ServiceProvider.GetRequiredService<NpgsqlConnection>();
 

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
-using ReservationProcessor.ReservationService.Controllers;
 using System.Data;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Text.Json;
 using Dapper;
+using ReservationProcessor.ReservationService.Data;
 using ReservationProcessor.ServiceDefaults.Messaging;
 using ReservationProcessor.ServiceDefaults.Messaging.Data;
 

@@ -1,6 +1,0 @@
-@ReservationProcessor.ReservationService_HostAddress = http://localhost:5188
-
-GET {{ReservationProcessor.ReservationService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
