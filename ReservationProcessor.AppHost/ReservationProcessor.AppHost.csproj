@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,6 +21,10 @@
     <ProjectReference Include="..\ReservationProcessor.AcceptanceService\ReservationProcessor.AcceptanceService.csproj" />
     <ProjectReference Include="..\ReservationProcessor.RejectionService\ReservationProcessor.RejectionService.csproj" />
     <ProjectReference Include="..\ReservationProcessor.ReservationService\ReservationProcessor.ReservationService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="aspirate-output\" />
   </ItemGroup>
 
 </Project>
