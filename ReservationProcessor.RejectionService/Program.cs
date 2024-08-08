@@ -1,4 +1,5 @@
 
+using ReservationProcessor.ReservationService;
 using ReservationProcessor.ServiceDefaults.Messaging.Data;
 using ReservationProcessor.ServiceDefaults.Messaging;
 
@@ -6,15 +7,18 @@ namespace ReservationProcessor.RejectionService;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
 
         // Add services to the container.
 
+        builder.AddKeyedNpgsqlDataSource("PostgresDefaultDB");
+        builder.AddNpgsqlDataSource("RejectionsDB");
+
         builder.AddRabbitMQ("MessageBus")
-            .AddMessageConsumer<ValidationSuccessMessage>("Fail_RabbitMQ")
+            .AddMessageConsumer<ValidationFailureMessage>("Fail_RabbitMQ")
             .AddMessageHandler<ValidationFailureMessage, FailureStorageService>();
 
         builder.Services.AddControllers();
@@ -40,6 +44,8 @@ public class Program
 
         app.MapControllers();
 
-        app.Run();
+        await app.InitializeDatabase();
+
+        await app.RunAsync();
     }
 }
